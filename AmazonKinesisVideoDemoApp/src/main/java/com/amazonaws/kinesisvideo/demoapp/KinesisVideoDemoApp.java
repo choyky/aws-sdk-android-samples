@@ -4,6 +4,7 @@ import android.app.Application;
 import android.util.Log;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.kinesisvideo.demoapp.creds.MyCredentialsProvider;
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.Callback;
 import com.amazonaws.mobile.client.UserStateDetails;
@@ -15,19 +16,26 @@ public class KinesisVideoDemoApp extends Application {
     public static final String TAG = KinesisVideoDemoApp.class.getSimpleName();
     public static Regions KINESIS_VIDEO_REGION = Regions.US_WEST_2;
 
+    private static MyCredentialsProvider myCredentialsProvider;
+
+    private KinesisVideoDemoApp thisApp;
+
     public static AWSCredentialsProvider getCredentialsProvider() {
-        return AWSMobileClient.getInstance();
+        return myCredentialsProvider;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        thisApp = this;
+
         final CountDownLatch latch = new CountDownLatch(1);
         AWSMobileClient.getInstance().initialize(getApplicationContext(), new Callback<UserStateDetails>() {
             @Override
             public void onResult(UserStateDetails result) {
                 Log.d(TAG, "onResult: user state: " + result.getUserState());
+                myCredentialsProvider = new MyCredentialsProvider(thisApp, AWSMobileClient.getInstance().getConfiguration());
                 latch.countDown();
             }
 
